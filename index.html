@@ -75,7 +75,9 @@
   a.title { color: var(--accent); }
   .entry + .entry { margin-top: 0.9rem; }
 
-  footer { max-width: 52rem; margin: 0 auto; padding: 1.25rem 1.5rem 3rem; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: 0.85rem; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+  .edu { display: flex; gap: 0.9rem; align-items: flex-start; }
+  .logo { position: relative; flex: 0 0 2.75rem; width: 2.75rem; height: 2.75rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); display: grid; place-items: center; font-family: var(--sans); font-size: 0.7rem; font-weight: 600; color: var(--muted); overflow: hidden; }
+  .logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 0.25rem; background: #fff; }
 
   @media (max-width: 36rem) {
     .bar-inner { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
@@ -125,17 +127,23 @@
   <h3>Education</h3>
   <div class="row">
     <div class="when">2025 — Present</div>
-    <div class="what">
-      <p class="title">Ph.D. in Computer Science</p>
-      <p class="sub">National University of Singapore</p>
+    <div class="what edu">
+      <span class="logo" aria-hidden="true">NUS<img src="assets/nus.svg" alt="" onerror="this.remove()"></span>
+      <div>
+        <p class="title">Ph.D. in Computer Science</p>
+        <p class="sub">National University of Singapore</p>
+      </div>
     </div>
   </div>
   <div class="row">
     <div class="when">2021 — 2025</div>
-    <div class="what">
-      <p class="title">B.S. in Mathematics</p>
-      <p class="title" style="margin-top:.35rem">B.A. in Linguistics</p>
-      <p class="sub">The University of Texas at Austin</p>
+    <div class="what edu">
+      <span class="logo" aria-hidden="true">UT<img src="assets/utaustin.svg" alt="" onerror="this.remove()"></span>
+      <div>
+        <p class="title">B.S. in Mathematics</p>
+        <p class="title" style="margin-top:.35rem">B.A. in Linguistics</p>
+        <p class="sub">The University of Texas at Austin</p>
+      </div>
     </div>
   </div>
 </section>
@@ -344,11 +352,6 @@
 
 </main>
 
-<footer>
-  <span>© Duc Van Khanh Tran</span>
-  <span>Press ← → to switch sections</span>
-</footer>
-
 <script>
 (function () {
   var sections = Array.prototype.slice.call(document.querySelectorAll("main > section"));
@@ -364,7 +367,6 @@
     });
     window.scrollTo(0, 0);
   }
-  function go(id) { if (location.hash !== "#" + id) location.hash = id; else show(id); }
   function current() {
     var id = location.hash.slice(1);
     return ids.indexOf(id) === -1 ? ids[0] : id;
@@ -373,15 +375,6 @@
   window.addEventListener("hashchange", function () { show(current()); });
   show(current());
 
-  document.addEventListener("keydown", function (e) {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    var t = e.target.tagName;
-    if (t === "INPUT" || t === "TEXTAREA") return;
-    var i = ids.indexOf(current());
-    if (e.key === "ArrowRight" && i < ids.length - 1) go(ids[i + 1]);
-    else if (e.key === "ArrowLeft" && i > 0) go(ids[i - 1]);
-    else if (/^[1-9]$/.test(e.key) && ids[+e.key - 1]) go(ids[+e.key - 1]);
-  });
 
 })();
 </script>
