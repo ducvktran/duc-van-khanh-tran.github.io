@@ -445,10 +445,10 @@
   // Places map
   var places = [
     { name: "Japan", region: "Asia", lat: 35.68, lng: 139.69 },
-    { name: "Vietnam", region: "Asia", lat: 21.03, lng: 105.85 },
+    { name: "Vietnam", region: "Asia", lat: 16.05, lng: 108.2 },
     { name: "Cambodia", region: "Asia", lat: 11.56, lng: 104.92 },
     { name: "Singapore", region: "Asia", lat: 1.35, lng: 103.82 },
-    { name: "Taiwan", region: "Asia", lat: 25.03, lng: 121.56 },
+    { name: "Taiwan", region: "Asia", lat: 23.8, lng: 120.95 },
     { name: "Pennsylvania, USA", region: "America", lat: 39.95, lng: -75.17 },
     { name: "Texas, USA", region: "America", lat: 30.27, lng: -97.74 },
     { name: "Colorado, USA", region: "America", lat: 39.74, lng: -104.99 },
@@ -498,7 +498,7 @@
   function initMap() {
     if (map || typeof L === "undefined") return;
     map = L.map("map", {
-      scrollWheelZoom: false, minZoom: 1, zoomSnap: 0.25,
+      scrollWheelZoom: true, minZoom: 1, zoomSnap: 0.25,
       maxBounds: [[-62, -180], [84, 180]], maxBoundsViscosity: 0.9
     });
     map.createPane("land").style.zIndex = 300;
