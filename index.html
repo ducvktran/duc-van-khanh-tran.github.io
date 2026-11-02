@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <style>
   :root {
     --bg: #ffffff;
@@ -75,6 +76,16 @@
   a.title { color: var(--accent); }
   .entry + .entry { margin-top: 0.9rem; }
 
+  .copy { font-family: var(--sans); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem; margin-left: 0.5rem; padding: 0.15rem 0.35rem; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; vertical-align: middle; }
+  .copy:hover { color: var(--ink); }
+  .copy-label:empty { display: none; }
+  #map { height: 26rem; border: 1px solid var(--rule); border-radius: 12px; background: var(--accent-soft); z-index: 0; }
+  .place-group { margin-top: 1.25rem; }
+  .place-group .chips { margin-top: 0.5rem; }
+  .place-group button.chip { color: var(--accent); border-color: var(--rule); }
+  .place-group button.chip:hover { border-color: var(--accent); }
+  .pin { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+  @media (max-width: 36rem) { #map { height: 20rem; } }
   .edu { display: flex; gap: 0.9rem; align-items: flex-start; }
   .logo { position: relative; flex: 0 0 2.75rem; width: 2.75rem; height: 2.75rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); display: grid; place-items: center; font-family: var(--sans); font-size: 0.7rem; font-weight: 600; color: var(--muted); overflow: hidden; }
   .logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 0.25rem; background: #fff; }
@@ -99,6 +110,7 @@
       <a href="#teaching">Teaching</a>
       <a href="#working">Working</a>
       <a href="#talks">Talks</a>
+      <a href="#misc">Miscellaneous</a>
     </nav>
   </div>
 </header>
@@ -117,7 +129,11 @@
       <h1>Duc Van Khanh Tran</h1>
       <p class="native" lang="vi">Trần Văn Khánh Đức <span lang="zh-Hant">陳文慶德</span></p>
       <p class="role">Ph.D. Student, <strong>Computer Science</strong><br>National University of Singapore</p>
-      <p class="contact"><a href="mailto:duc.tranvk@u.nus.edu">duc.tranvk@u.nus.edu</a></p>
+      <p class="contact"><a href="mailto:duc.tranvk@u.nus.edu" id="email">duc.tranvk@u.nus.edu</a>
+        <button type="button" class="copy" id="copy-email" aria-label="Copy email address" title="Copy email address">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>
+          <span class="copy-label" aria-live="polite"></span>
+        </button></p>
     </div>
   </div>
 
@@ -350,8 +366,27 @@
   </div>
 </section>
 
+<!-- MISCELLANEOUS -->
+<section id="misc">
+  <h2>Miscellaneous</h2>
+
+  <h3>Places I’ve been</h3>
+  <div id="map" role="region" aria-label="Map of places I have been"></div>
+  <noscript><p class="sub">The map needs JavaScript to display.</p></noscript>
+
+  <div class="place-group">
+    <h3 style="margin-top:0">Asia</h3>
+    <div class="chips" data-region="Asia"></div>
+  </div>
+  <div class="place-group">
+    <h3 style="margin-top:0">United States</h3>
+    <div class="chips" data-region="United States"></div>
+  </div>
+</section>
+
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 (function () {
   var sections = Array.prototype.slice.call(document.querySelectorAll("main > section"));
@@ -366,6 +401,7 @@
       else a.removeAttribute("aria-current");
     });
     window.scrollTo(0, 0);
+    if (id === "misc") { initMap(); if (map) setTimeout(function () { map.invalidateSize(); }, 0); }
   }
   function current() {
     var id = location.hash.slice(1);
@@ -373,9 +409,90 @@
   }
 
   window.addEventListener("hashchange", function () { show(current()); });
+
+  // Copy email
+  var copyBtn = document.getElementById("copy-email");
+  var copyLabel = copyBtn.querySelector(".copy-label");
+  var timer;
+  function flash(msg) {
+    copyLabel.textContent = msg;
+    clearTimeout(timer);
+    timer = setTimeout(function () { copyLabel.textContent = ""; }, 1800);
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+  copyBtn.addEventListener("click", function () {
+    var text = document.getElementById("email").textContent.trim();
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { flash("Copied"); },
+        function () { flash(fallbackCopy(text) ? "Copied" : "Copy failed"); });
+    } else {
+      flash(fallbackCopy(text) ? "Copied" : "Copy failed");
+    }
+  });
+
+  // Places map
+  var places = [
+    { name: "Japan", region: "Asia", lat: 35.68, lng: 139.69 },
+    { name: "Vietnam", region: "Asia", lat: 21.03, lng: 105.85 },
+    { name: "Cambodia", region: "Asia", lat: 11.56, lng: 104.92 },
+    { name: "Singapore", region: "Asia", lat: 1.35, lng: 103.82 },
+    { name: "Taiwan", region: "Asia", lat: 25.03, lng: 121.56 },
+    { name: "Pennsylvania", region: "United States", lat: 39.95, lng: -75.17 },
+    { name: "Texas", region: "United States", lat: 30.27, lng: -97.74 },
+    { name: "Colorado", region: "United States", lat: 39.74, lng: -104.99 },
+    { name: "New York", region: "United States", lat: 40.71, lng: -74.01 },
+    { name: "Washington", region: "United States", lat: 47.61, lng: -122.33 },
+    { name: "Washington D.C.", region: "United States", lat: 38.9, lng: -77.04 },
+    { name: "Massachusetts", region: "United States", lat: 42.36, lng: -71.06 },
+    { name: "Rhode Island", region: "United States", lat: 41.82, lng: -71.41 }
+  ];
+  var map, markers = {};
+
+  function initMap() {
+    if (map || typeof L === "undefined") return;
+    map = L.map("map", { scrollWheelZoom: false, minZoom: 2, worldCopyJump: true });
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+      maxZoom: 18
+    }).addTo(map);
+    var icon = L.divIcon({ className: "", html: '<div class="pin"></div>', iconSize: [14, 14], iconAnchor: [7, 7] });
+    places.forEach(function (p) {
+      markers[p.name] = L.marker([p.lat, p.lng], { icon: icon, title: p.name, keyboard: true })
+        .addTo(map)
+        .bindTooltip(p.name, { direction: "top", offset: [0, -8] });
+    });
+    map.fitBounds(places.map(function (p) { return [p.lat, p.lng]; }), { padding: [30, 30] });
+  }
+
+  places.forEach(function (p) {
+    var holder = document.querySelector('[data-region="' + p.region + '"]');
+    if (!holder) return;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.textContent = p.name;
+    b.addEventListener("click", function () {
+      initMap();
+      if (!map) return;
+      map.invalidateSize();
+      map.flyTo([p.lat, p.lng], 5, { duration: 0.8 });
+      markers[p.name].openTooltip();
+      document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    holder.appendChild(b);
+  });
   show(current());
-
-
 })();
 </script>
 </body>
