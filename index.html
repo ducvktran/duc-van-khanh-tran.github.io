@@ -79,12 +79,12 @@
   .copy { font-family: var(--sans); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem; margin-left: 0.5rem; padding: 0.15rem 0.35rem; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; vertical-align: middle; }
   .copy:hover { color: var(--ink); }
   .copy-label:empty { display: none; }
-  #map { height: 26rem; border: 1px solid var(--rule); border-radius: 12px; background: var(--accent-soft); z-index: 0; }
+  #map { height: 26rem; border: 1px solid #d9dfe8; border-radius: 12px; background: #e8eef7; z-index: 0; }
+  #map .leaflet-container, #map.leaflet-container { font-family: var(--sans); }
   .place-group { margin-top: 1.25rem; }
   .place-group .chips { margin-top: 0.5rem; }
   .place-group button.chip { color: var(--accent); border-color: var(--rule); }
   .place-group button.chip:hover { border-color: var(--accent); }
-  .pin { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
   @media (max-width: 36rem) { #map { height: 20rem; } }
   .edu { display: flex; gap: 0.9rem; align-items: flex-start; }
   .logo { position: relative; flex: 0 0 2.75rem; width: 2.75rem; height: 2.75rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); display: grid; place-items: center; font-family: var(--sans); font-size: 0.7rem; font-weight: 600; color: var(--muted); overflow: hidden; }
@@ -379,14 +379,15 @@
     <div class="chips" data-region="Asia"></div>
   </div>
   <div class="place-group">
-    <h3 style="margin-top:0">United States</h3>
-    <div class="chips" data-region="United States"></div>
+    <h3 style="margin-top:0">America</h3>
+    <div class="chips" data-region="America"></div>
   </div>
 </section>
 
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <script>
 (function () {
   var sections = Array.prototype.slice.call(document.querySelectorAll("main > section"));
@@ -448,34 +449,94 @@
     { name: "Cambodia", region: "Asia", lat: 11.56, lng: 104.92 },
     { name: "Singapore", region: "Asia", lat: 1.35, lng: 103.82 },
     { name: "Taiwan", region: "Asia", lat: 25.03, lng: 121.56 },
-    { name: "Pennsylvania", region: "United States", lat: 39.95, lng: -75.17 },
-    { name: "Texas", region: "United States", lat: 30.27, lng: -97.74 },
-    { name: "Colorado", region: "United States", lat: 39.74, lng: -104.99 },
-    { name: "New York", region: "United States", lat: 40.71, lng: -74.01 },
-    { name: "Washington", region: "United States", lat: 47.61, lng: -122.33 },
-    { name: "Washington D.C.", region: "United States", lat: 38.9, lng: -77.04 },
-    { name: "Massachusetts", region: "United States", lat: 42.36, lng: -71.06 },
-    { name: "Rhode Island", region: "United States", lat: 41.82, lng: -71.41 }
+    { name: "Pennsylvania, USA", region: "America", lat: 39.95, lng: -75.17 },
+    { name: "Texas, USA", region: "America", lat: 30.27, lng: -97.74 },
+    { name: "Colorado, USA", region: "America", lat: 39.74, lng: -104.99 },
+    { name: "New York, USA", region: "America", lat: 40.71, lng: -74.01 },
+    { name: "Washington, USA", region: "America", lat: 47.61, lng: -122.33 },
+    { name: "Washington D.C., USA", region: "America", lat: 38.9, lng: -77.04 },
+    { name: "Massachusetts, USA", region: "America", lat: 42.36, lng: -71.06 },
+    { name: "Rhode Island, USA", region: "America", lat: 41.82, lng: -71.41 }
   ];
   var map, markers = {};
+  var LAND_BORDER = "#cdd5e0", VISITED_FILL = "#f8d7e0", PIN_RING = "#6b7280";
+  var visitedCountries = ["Japan", "Vietnam", "Cambodia", "Singapore", "Taiwan"];
+  var visitedStates = ["Pennsylvania", "Texas", "Colorado", "New York", "Washington", "District of Columbia", "Massachusetts", "Rhode Island"];
+
+  // Natural Earth shapes (Russia, Fiji) cross the 180° meridian, which draws streaks and
+  // flips fills on a flat map. Unwrap those rings and add a shifted copy on the other side.
+  function unwrapRing(ring) {
+    var out = [[ring[0][0], ring[0][1]]];
+    for (var i = 1; i < ring.length; i++) {
+      var lon = ring[i][0], prev = out[i - 1][0];
+      while (lon - prev > 180) lon -= 360;
+      while (lon - prev < -180) lon += 360;
+      out.push([lon, ring[i][1]]);
+    }
+    return out;
+  }
+  function shiftRing(ring, d) { return ring.map(function (c) { return [c[0] + d, c[1]]; }); }
+  function fixAntimeridian(fc) {
+    fc.features.forEach(function (f) {
+      var g = f.geometry;
+      if (!g) return;
+      var polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : null;
+      if (!polys) return;
+      var out = [];
+      polys.forEach(function (poly) {
+        var rings = poly.map(unwrapRing), min = Infinity, max = -Infinity;
+        rings[0].forEach(function (c) { if (c[0] < min) min = c[0]; if (c[0] > max) max = c[0]; });
+        out.push(rings);
+        if (max > 180) out.push(rings.map(function (r) { return shiftRing(r, -360); }));
+        if (min < -180) out.push(rings.map(function (r) { return shiftRing(r, 360); }));
+      });
+      f.geometry = { type: "MultiPolygon", coordinates: out };
+    });
+    return fc;
+  }
 
   function initMap() {
     if (map || typeof L === "undefined") return;
-    map = L.map("map", { scrollWheelZoom: false, minZoom: 2, worldCopyJump: true });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
-      maxZoom: 18
-    }).addTo(map);
-    var icon = L.divIcon({ className: "", html: '<div class="pin"></div>', iconSize: [14, 14], iconAnchor: [7, 7] });
+    map = L.map("map", {
+      scrollWheelZoom: false, minZoom: 1, zoomSnap: 0.25,
+      maxBounds: [[-62, -180], [84, 180]], maxBoundsViscosity: 0.9
+    });
+    map.createPane("land").style.zIndex = 300;
+    map.createPane("pins").style.zIndex = 450;
+    var landRenderer = L.svg({ pane: "land" });
+    var pinRenderer = L.svg({ pane: "pins" });
+
     places.forEach(function (p) {
-      markers[p.name] = L.marker([p.lat, p.lng], { icon: icon, title: p.name, keyboard: true })
-        .addTo(map)
-        .bindTooltip(p.name, { direction: "top", offset: [0, -8] });
+      markers[p.name] = L.circleMarker([p.lat, p.lng], {
+        pane: "pins", renderer: pinRenderer, radius: 5,
+        color: PIN_RING, weight: 3, fillColor: "#ffffff", fillOpacity: 1
+      }).addTo(map).bindTooltip(p.name, { direction: "top", offset: [0, -6] });
     });
     map.fitBounds(places.map(function (p) { return [p.lat, p.lng]; }), { padding: [30, 30] });
+
+    function layerStyle(visited, weight) {
+      return function (f) {
+        return { fillColor: visited.indexOf(f.properties.name) > -1 ? VISITED_FILL : "#ffffff",
+                 fillOpacity: 1, color: LAND_BORDER, weight: weight };
+      };
+    }
+    if (typeof topojson === "undefined" || !window.fetch) return;
+    Promise.all([
+      fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json").then(function (r) { return r.json(); }),
+      fetch("https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-10m.json").then(function (r) { return r.json(); })
+    ]).then(function (d) {
+      var world = topojson.feature(d[0], d[0].objects.countries);
+      world.features = world.features.filter(function (f) { return f.properties.name !== "Antarctica"; });
+      var states = topojson.feature(d[1], d[1].objects.states);
+      fixAntimeridian(world);
+      fixAntimeridian(states);
+      L.geoJSON(world, { pane: "land", renderer: landRenderer, interactive: false, style: layerStyle(visitedCountries, 0.7) }).addTo(map);
+      L.geoJSON(states, { pane: "land", renderer: landRenderer, interactive: false, style: layerStyle(visitedStates, 0.6) }).addTo(map);
+    }).catch(function (e) { console.warn("Map data failed to load", e); });
   }
 
-  places.forEach(function (p) {
+  function sortKey(p) { return p.name.replace(/, USA$/, ""); }
+  places.slice().sort(function (a, b) { return sortKey(a).localeCompare(sortKey(b)); }).forEach(function (p) {
     var holder = document.querySelector('[data-region="' + p.region + '"]');
     if (!holder) return;
     var b = document.createElement("button");
