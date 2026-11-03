@@ -81,6 +81,13 @@
   .copy-label:empty { display: none; }
   #map { height: 26rem; border: 1px solid #d9dfe8; border-radius: 12px; background: #e8eef7; z-index: 0; }
   #map .leaflet-container, #map.leaflet-container { font-family: var(--sans); }
+  .erdos-val { font-size: 1.15rem; color: var(--ink); text-transform: none; letter-spacing: 0; margin: 0 0.25rem 0 0.35rem; }
+  .erdos-expl { font-size: 0.9rem; font-weight: 400; text-transform: none; letter-spacing: 0; }
+  #misc h3 + .chain { margin-top: 0.5rem; }
+  .chain { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.6rem; font-family: var(--sans); font-size: 0.92rem; }
+  .chain li { display: flex; align-items: center; gap: 0.6rem; }
+  .chain li + li::before { content: "\2192"; color: var(--muted); }
+  .chain .name { padding: 0.25rem 0.75rem; border: 1px solid var(--rule); border-radius: 999px; background: var(--card); }
   .place-group { margin-top: 1.25rem; }
   .place-group .chips { margin-top: 0.5rem; }
   .place-group button.chip { color: var(--accent); border-color: var(--rule); }
@@ -370,6 +377,15 @@
 <section id="misc">
   <h2>Miscellaneous</h2>
 
+  <h3>Erdős number <span class="erdos-val">4</span> <span class="erdos-expl">(collaborative distance from Paul Erdős)</span></h3>
+  <ol class="chain" aria-label="Collaboration chain from Duc Van Khanh Tran to Paul Erdős">
+    <li><span class="name">Duc Van Khanh Tran</span></li>
+    <li><span class="name">Sai Teja Somu</span></li>
+    <li><span class="name">Georges Grekos</span></li>
+    <li><span class="name">Jean-Marc Deshouillers</span></li>
+    <li><span class="name">Paul Erdős</span></li>
+  </ol>
+
   <h3>Languages I speak</h3>
   <ul class="chips" style="margin-top:0.5rem" aria-label="Languages">
     <li class="chip">Vietnamese</li>
@@ -456,20 +472,21 @@
     { name: "Vietnam", region: "Asia", lat: 16.05, lng: 108.2 },
     { name: "Cambodia", region: "Asia", lat: 11.56, lng: 104.92 },
     { name: "Singapore", region: "Asia", lat: 1.35, lng: 103.82 },
-    { name: "Taiwan", region: "Asia", lat: 23.8, lng: 120.95 },
+    { name: "Taiwan (ROC)", region: "Asia", lat: 23.8, lng: 120.95 },
     { name: "Pennsylvania, USA", region: "America", lat: 39.95, lng: -75.17 },
     { name: "Texas, USA", region: "America", lat: 30.27, lng: -97.74 },
     { name: "Colorado, USA", region: "America", lat: 39.74, lng: -104.99 },
     { name: "New York, USA", region: "America", lat: 40.71, lng: -74.01 },
     { name: "Washington, USA", region: "America", lat: 47.61, lng: -122.33 },
     { name: "Washington D.C., USA", region: "America", lat: 38.9, lng: -77.04 },
+    { name: "Maryland, USA", region: "America", lat: 39.05, lng: -76.8 },
     { name: "Massachusetts, USA", region: "America", lat: 42.36, lng: -71.06 },
     { name: "Rhode Island, USA", region: "America", lat: 41.82, lng: -71.41 }
   ];
   var map, markers = {};
   var LAND_BORDER = "#cdd5e0", VISITED_FILL = "#f8d7e0", PIN_RING = "#6b7280";
-  var visitedCountries = ["Japan", "Vietnam", "Cambodia", "Singapore", "Taiwan (ROC)"];
-  var visitedStates = ["Pennsylvania", "Texas", "Colorado", "New York", "Washington", "District of Columbia", "Massachusetts", "Rhode Island"];
+  var visitedCountries = ["Japan", "Vietnam", "Cambodia", "Singapore", "Taiwan"];
+  var visitedStates = ["Pennsylvania", "Texas", "Colorado", "New York", "Washington", "District of Columbia", "Maryland", "Massachusetts", "Rhode Island"];
 
   // Natural Earth shapes (Russia, Fiji) cross the 180° meridian, which draws streaks and
   // flips fills on a flat map. Unwrap those rings and add a shifted copy on the other side.
