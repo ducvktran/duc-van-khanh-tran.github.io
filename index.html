@@ -81,8 +81,10 @@
   .copy-label:empty { display: none; }
   #map { height: 26rem; border: 1px solid #d9dfe8; border-radius: 12px; background: #e8eef7; z-index: 0; }
   #map .leaflet-container, #map.leaflet-container { font-family: var(--sans); }
-  .erdos-val { font-size: 1.15rem; color: var(--ink); text-transform: none; letter-spacing: 0; margin: 0 0.25rem 0 0.35rem; }
-  .erdos-expl { font-size: 0.9rem; font-weight: 400; text-transform: none; letter-spacing: 0; }
+  .misc-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; letter-spacing: -0.01em; text-transform: none; color: var(--ink); margin: 2.5rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--rule); }
+  .misc-title:first-of-type { margin-top: 0; }
+  .erdos-val { font-size: 1.1rem; color: var(--ink); text-transform: none; letter-spacing: 0; margin: 0 0.25rem 0 0.35rem; }
+  .erdos-expl { font-family: var(--sans); font-size: 0.9rem; font-weight: 400; color: var(--muted); text-transform: none; letter-spacing: 0; }
   #misc h3 + .chain { margin-top: 0.5rem; }
   .chain { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.6rem; font-family: var(--sans); font-size: 0.92rem; }
   .chain li { display: flex; align-items: center; gap: 0.6rem; }
@@ -377,7 +379,7 @@
 <section id="misc">
   <h2>Miscellaneous</h2>
 
-  <h3>Erdős number <span class="erdos-val">4</span> <span class="erdos-expl">(collaborative distance from Paul Erdős)</span></h3>
+  <h3 class="misc-title">Erdős number <span class="erdos-val">4</span> <span class="erdos-expl">(collaborative distance from Paul Erdős)</span></h3>
   <ol class="chain" aria-label="Collaboration chain from Duc Van Khanh Tran to Paul Erdős">
     <li><span class="name">Duc Van Khanh Tran</span></li>
     <li><span class="name">Sai Teja Somu</span></li>
@@ -386,7 +388,7 @@
     <li><span class="name">Paul Erdős</span></li>
   </ol>
 
-  <h3>Languages I speak</h3>
+  <h3 class="misc-title">Languages I speak</h3>
   <ul class="chips" style="margin-top:0.5rem" aria-label="Languages">
     <li class="chip">Vietnamese</li>
     <li class="chip">Japanese</li>
@@ -394,7 +396,7 @@
     <li class="chip">Mandarin Chinese</li>
   </ul>
 
-  <h3>Places I’ve been</h3>
+  <h3 class="misc-title">Places I’ve been</h3>
   <div id="map" role="region" aria-label="Map of places I have been"></div>
   <noscript><p class="sub">The map needs JavaScript to display.</p></noscript>
 
